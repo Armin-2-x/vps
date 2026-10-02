@@ -1,0 +1,80 @@
+name: Ubuntu Tailscale Server
+
+on:
+  workflow_dispatch:
+
+jobs:
+  server:
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 350
+
+    steps:
+
+      - name: Install Tailscale
+        uses: tailscale/github-action@v4
+        with:
+          authkey: ${{ secrets.TAILSCALE_AUTH_KEY }}
+
+      - name: Show Server Information
+        shell: bash
+        run: |
+          echo ""
+          echo "======================================================"
+          echo "              UBUNTU SERVER INFORMATION"
+          echo "======================================================"
+
+          echo "OS:"
+          . /etc/os-release
+          echo "  $PRETTY_NAME"
+
+          echo ""
+          echo "Hostname:"
+          hostname
+
+          echo ""
+          echo "Tailscale IPv4:"
+          tailscale ip -4
+
+          echo ""
+          echo "Tailscale IPv6:"
+          tailscale ip -6 || true
+
+          echo ""
+          echo "CPU:"
+          echo "$(nproc) cores"
+
+          echo ""
+          echo "RAM:"
+          free -h | awk '/Mem:/ {print $2}'
+
+          echo ""
+          echo "Architecture:"
+          uname -m
+
+          echo ""
+          echo "Kernel:"
+          uname -r
+
+          echo ""
+          echo "Public IPv4:"
+          curl -4 -s https://api.ipify.org
+          echo ""
+
+          echo ""
+          echo "Tailscale Status:"
+          tailscale status
+
+          echo ""
+          echo "======================================================"
+          echo "                  SERVER ONLINE"
+          echo "======================================================"
+          echo ""
+
+      - name: Keep Server Online
+        shell: bash
+        run: |
+          for i in $(seq 1 350); do
+            echo "[$i/350] Server running..."
+            sleep 60
+          done
